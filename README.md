@@ -1,5 +1,5 @@
-# ScraperBase
-Repo holding threaded scraper basic template
+# NOAA Tides info processor
+Repo for NOAA Tides info parsing
 
 # Dependencies
 * Required
