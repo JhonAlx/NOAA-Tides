@@ -50,7 +50,7 @@ namespace ScraperBase
 
             if (result == DialogResult.OK)
             {
-                FileTxtBox.Text = openFileDialog1.FileName;
+                FileTxtBox.Text = folderBrowserDialog1.SelectedPath;
             }
         }
     }
