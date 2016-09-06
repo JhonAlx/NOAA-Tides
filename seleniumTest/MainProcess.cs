@@ -13,10 +13,11 @@ namespace ScraperBase
     {
         public Form MyForm { get; set; }
         public RichTextBox MyRichTextBox { get; set; }
-        public String FolderName { get; set; }
-        
-        private const String ACCESS_URL = "https://tidesandcurrents.noaa.gov/tide_predictions.html";
-        
+        public string FolderName { get; set; }
+        public string XMLFolderName { get; set; }
+
+        private const string ACCESS_URL = "https://tidesandcurrents.noaa.gov/tide_predictions.html";
+
         private IWebDriver driver;
 
         public void Run()
@@ -24,6 +25,7 @@ namespace ScraperBase
             Log($"Starting scraping job on thread ID {Thread.CurrentThread.ManagedThreadId}");
 
             var options = new ChromeOptions();
+            options.AddUserProfilePreference("download.default_directory", XMLFolderName);
             driver = new ChromeDriver(options);
 
             Log($"Trying to navigate to NOAA URL on thread ID: {Thread.CurrentThread.ManagedThreadId}");
@@ -42,18 +44,25 @@ namespace ScraperBase
             var statesLinks = driver.FindElements(By.XPath("//table[@class='table']/tbody/tr/td/a"));
 
             foreach (var cityLink in statesLinks)
+            {
                 statesHrefs.Add(new KeyValuePair<string, string>(cityLink.Text, cityLink.GetAttribute("href")));
+                break;
+            }
 
             Log($"Found {statesHrefs.Count} states");
 
-            NavigateStations(statesHrefs);
+            List<Station> stations = NavigateStations(statesHrefs);
+
+            ProcessStation(stations);
 
             driver.Quit();
             Log("Process finished on thread ID " + Thread.CurrentThread.ManagedThreadId);
         }
 
-        private void NavigateStations(List<KeyValuePair<string, string>> statesHrefs)
+        private List<Station> NavigateStations(List<KeyValuePair<string, string>> statesHrefs)
         {
+            List<Station> stations = new List<Station>();
+
             foreach (var href in statesHrefs)
             {
                 Log($"Navigating to {href.Key} state");
@@ -61,33 +70,51 @@ namespace ScraperBase
                 driver.Url = href.Value;
                 driver.Navigate();
 
-                List<KeyValuePair<string, string>> stationHrefs = new List<KeyValuePair<string, string>>();
-
                 //Get only TDs with info
                 var stationData = driver.FindElements(By.XPath("//table[@class='table']/tbody/tr[descendant::td[@class='stationname']]"));
+                int counter = 1;
 
-                foreach (var stationLink in stationData)
+                Log($"Found {stationData.Count} stations in {href.Key}");
+
+                foreach (var stationTr in stationData)
                 {
-                    //Process data here
+                    Station st = new Station();
+
+                    st.Id = stationTr.FindElement(By.ClassName("stationid")).Text;
+                    st.State = href.Key;
+                    st.Name = stationTr.FindElement(By.ClassName("stationname")).FindElement(By.TagName("a")).Text;
+                    st.Lat = stationTr.FindElement(By.ClassName("latitude")).Text;
+                    st.Lon = stationTr.FindElement(By.ClassName("longitude")).Text;
+                    st.Predictions = stationTr.FindElement(By.ClassName("pred_type")).Text;
+                    st.Href = stationTr.FindElement(By.ClassName("stationname")).FindElement(By.TagName("a")).GetAttribute("href");
+
+                    stations.Add(st);
+
+                    Log($"Processed {st.State}'s station {counter++}/{stationData.Count}");
                 }
             }
+
+            return stations;
         }
 
-        private void ProcessStations(List<KeyValuePair<string, string>> stationHrefs)
+        private void ProcessStation(List<Station> stations)
         {
-            foreach (var href in stationHrefs)
+            foreach (var station in stations)
             {
-                Log($"Navigating to {href.Key} station");
+                Log($"Navigating to {station.Name} station");
 
-                driver.Url = href.Value;
+                driver.Url = station.Href;
                 driver.Navigate();
+
+                var xml = driver.FindElement(By.XPath("//input[@value='Annual XML']"));
+                xml.Click();
             }
         }
 
         private void LogException(Exception ex)
         {
             MyForm.Invoke(new Action(
-                delegate()
+                delegate ()
                 {
                     MyRichTextBox.Text += ex.Message + Environment.NewLine;
                     MyRichTextBox.Text += ex.StackTrace + Environment.NewLine;
@@ -96,7 +123,7 @@ namespace ScraperBase
                 }));
 
             MyForm.Invoke(new Action(
-                delegate()
+                delegate ()
                 {
                     MyForm.Refresh();
                 }));
@@ -105,7 +132,7 @@ namespace ScraperBase
         private void Log(String text)
         {
             MyForm.Invoke(new Action(
-                delegate()
+                delegate ()
                 {
                     MyRichTextBox.Text += text + Environment.NewLine;
                     MyRichTextBox.SelectionStart = MyRichTextBox.Text.Length;
@@ -113,7 +140,7 @@ namespace ScraperBase
                 }));
 
             MyForm.Invoke(new Action(
-                delegate()
+                delegate ()
                 {
                     MyForm.Refresh();
                 }));

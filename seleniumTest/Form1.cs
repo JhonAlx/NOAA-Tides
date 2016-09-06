@@ -26,15 +26,16 @@ namespace ScraperBase
         {
             MainProcess mp = new MainProcess();
             mp.MyForm = this;
-            mp.MyRichTextBox = this.statusRTB;
-            mp.FolderName = this.FileTxtBox.Text;
+            mp.MyRichTextBox = statusRTB;
+            mp.FolderName = FileTxtBox.Text;
+            mp.XMLFolderName = XMLFolderTxtBox.Text;
 
             mp.Run();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (!(String.IsNullOrEmpty(FileTxtBox.Text)))
+            if (!string.IsNullOrEmpty(FileTxtBox.Text) && !string.IsNullOrEmpty(XMLFolderTxtBox.Text))
             {
                 Thread t = new Thread(CallSelenium);
                 t.Name = FileTxtBox.Text;
@@ -51,6 +52,16 @@ namespace ScraperBase
             if (result == DialogResult.OK)
             {
                 FileTxtBox.Text = folderBrowserDialog1.SelectedPath;
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            DialogResult result = folderBrowserDialog2.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                XMLFolderTxtBox.Text = folderBrowserDialog2.SelectedPath;
             }
         }
     }
