@@ -45,6 +45,18 @@ namespace ScraperBase
         public string Stationid { get; set; }
         [XmlElement(ElementName = "stationtype")]
         public string Stationtype { get; set; }
+        [XmlElement(ElementName = "referencedToStationName")]
+        public string ReferencedToStationName { get; set; }
+        [XmlElement(ElementName = "referencedToStationId")]
+        public string ReferencedToStationId { get; set; }
+        [XmlElement(ElementName = "HeightOffsetLow")]
+        public string HeightOffsetLow { get; set; }
+        [XmlElement(ElementName = "HeightOffsetHigh")]
+        public string HeightOffsetHigh { get; set; }
+        [XmlElement(ElementName = "TimeOffsetLow")]
+        public string TimeOffsetLow { get; set; }
+        [XmlElement(ElementName = "TimeOffsetHigh")]
+        public string TimeOffsetHigh { get; set; }
         [XmlElement(ElementName = "BeginDate")]
         public string BeginDate { get; set; }
         [XmlElement(ElementName = "EndDate")]
