@@ -5,6 +5,5 @@ Repo for NOAA Tides info parsing
 * Required
 	* Selenium.WebDriver
 	* Selenium.Support
-* Optional 
 	* EPPlus
 
